@@ -3,46 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserCreateDto } from './dto/userCreate.dto';
 import { UserUpdateDto } from './dto/userUpdate.dto';
 import { Role } from 'src/generated/prisma/enums';
 
 @Injectable()
 export class UserService {
+  private readonly saltRounds = 10;
+
   constructor(private readonly prisma: PrismaService) {}
-
-  async createUser(createUserDto: UserCreateDto, role: Role) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: createUserDto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('A user with this email already exists');
-    }
-
-    const { role: dtoRole, ...data } = createUserDto;
-
-    return this.prisma.user.create({
-      data: {
-        ...data,
-        role: role ?? dtoRole ?? Role.TOURIST,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        language: true,
-        isActive: true,
-        isDeleted: true,
-        isBlocked: true,
-        image: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
 
   async findAllUser() {
     return this.prisma.user.findMany({
@@ -106,9 +76,19 @@ export class UserService {
       }
     }
 
+    const dataToUpdate: any = { ...updateUserDto };
+
+    if (updateUserDto.password) {
+      dataToUpdate.password = await bcrypt.hash(
+        updateUserDto.password,
+        this.saltRounds,
+      );
+    }
+
     return this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
+      data: dataToUpdate,
+
       select: {
         id: true,
         name: true,

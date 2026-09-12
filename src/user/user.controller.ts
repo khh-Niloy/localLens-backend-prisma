@@ -6,32 +6,20 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserCreateDto } from './dto/userCreate.dto';
 import { UserUpdateDto } from './dto/userUpdate.dto';
+import { JwtAuthGuard, RolesGuard } from '../auth/guards';
+import { Roles } from '../auth/decorators';
 import { Role } from 'src/generated/prisma/enums';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('tourist')
-  createTourist(@Body() createUserDto: UserCreateDto) {
-    return this.userService.createUser(createUserDto, Role.TOURIST);
-  }
-
-  @Post('guide')
-  createGuide(@Body() createUserDto: UserCreateDto) {
-    return this.userService.createUser(createUserDto, Role.GUIDE);
-  }
-
-  @Post('admin')
-  createAdmin(@Body() createUserDto: UserCreateDto) {
-    return this.userService.createUser(createUserDto, Role.ADMIN);
-  }
-
+  @Roles(Role.ADMIN)
   @Get()
   findAll() {
     return this.userService.findAllUser();
@@ -50,6 +38,7 @@ export class UserController {
     return this.userService.updateUser(id, updateUserDto);
   }
 
+  @Roles(Role.ADMIN)
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUser(id);
