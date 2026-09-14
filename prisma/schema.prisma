@@ -11,3 +11,25 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  TOURIST
+  ADMIN
+  GUIDE
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(TOURIST)
+  language  String   @default("en")
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
+  isBlocked Boolean  @default(false)
+  image              String?
+  hashedRefreshToken String?
+  createdAt          DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
