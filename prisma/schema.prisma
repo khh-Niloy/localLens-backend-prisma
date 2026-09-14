@@ -32,11 +32,31 @@ enum TOUR_STATUS {
   DEACTIVATE
 }
 
+enum BOOKING_STATUS {
+  PENDING
+  ACCEPTED
+  PAYMENT_PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  FAILED
+}
+
+enum PAYMENT_STATUS {
+  PAID
+  UNPAID
+  CANCELLED
+  FAILED
+  REFUNDED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
+  phone     String
+  address   String   @default("")
   role      Role     @default(TOURIST)
   language  String   @default("en")
   isActive  Boolean  @default(true)
@@ -48,6 +68,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   tours          Tour[]
+  bookings       Booking[] @relation("UserBookings")
+  guidedBookings Booking[] @relation("GuideBookings")
 }
 
 model Tour {
@@ -77,4 +99,38 @@ model Tour {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
+  bookings Booking[]
+}
+
+model Booking {
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  user           User           @relation("UserBookings", fields: [userId], references: [id], onDelete: Restrict)
+  tourId         Int
+  tour           Tour           @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  guideId        Int
+  guide          User           @relation("GuideBookings", fields: [guideId], references: [id], onDelete: Restrict)
+  bookingDate    DateTime
+  bookingTime    String
+  numberOfGuests Int
+  totalAmount    Float
+  status         BOOKING_STATUS @default(PENDING)
+  note           String?        // cancellation / failure / guide note
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  payment Payment?
+}
+
+model Payment {
+  id                 Int            @id @default(autoincrement())
+  bookingId          Int            @unique
+  booking            Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  transactionId      String         @unique
+  amount             Float
+  status             PAYMENT_STATUS @default(UNPAID)
+  paymentGatewayData Json?          // Raw SSLCommerz response stored for records
+  paidAt             DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 }
