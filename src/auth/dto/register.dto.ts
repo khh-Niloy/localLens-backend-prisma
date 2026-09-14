@@ -28,6 +28,14 @@ export class RegisterDto {
   password: string;
 
   @IsString()
+  @IsNotEmpty({ message: 'Phone is required' })
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Address is required' })
+  address: string;
+
+  @IsString()
   @IsOptional()
   language?: string;
 
