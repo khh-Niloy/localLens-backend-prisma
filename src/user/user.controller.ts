@@ -11,7 +11,7 @@ import {
 import { UserService } from './user.service';
 import { UserUpdateDto } from './dto/userUpdate.dto';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
-import { Roles } from '../auth/decorators';
+import { CurrentUser, Roles } from '../auth/decorators';
 import { Role } from 'src/generated/prisma/enums';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,6 +23,19 @@ export class UserController {
   @Get()
   findAll() {
     return this.userService.findAllUser();
+  }
+
+  @Get('profile')
+  getProfile(@CurrentUser('id') userId: number) {
+    return this.userService.getUserProfile(userId);
+  }
+
+  @Patch('profile')
+  updateProfile(
+    @CurrentUser('id') userId: number,
+    @Body() updateUserDto: UserUpdateDto,
+  ) {
+    return this.userService.updateUser(userId, updateUserDto);
   }
 
   @Get(':id')

@@ -18,6 +18,20 @@ enum Role {
   GUIDE
 }
 
+enum TOUR_CATEGORY {
+  FOOD
+  HISTORICAL
+  ART
+  NATURE
+  ADVENTURE
+  CULTURAL
+}
+
+enum TOUR_STATUS {
+  ACTIVE
+  DEACTIVATE
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -32,4 +46,35 @@ model User {
   hashedRefreshToken String?
   createdAt          DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  tours          Tour[]
+}
+
+model Tour {
+  id              Int           @id @default(autoincrement())
+  slug            String        @unique
+  guideId         Int
+  guide           User          @relation(fields: [guideId], references: [id], onDelete: Restrict)
+  title           String
+  description     String
+  longDescription String?       @db.Text
+  itinerary       Json          @default("[]")
+  tourFee         Float
+  maxDuration     Int
+  meetingPoint    String
+  maxGroupSize    Int
+  category        TOUR_CATEGORY
+  location        String
+  images          String[]
+  highlights      String[]
+  included        String[]
+  notIncluded     String[]
+  importantInfo   String[]
+  status          TOUR_STATUS   @default(ACTIVE)
+  active          Boolean       @default(true)
+  isFeatured      Boolean       @default(false)
+  availableDates Json          @default("[]")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
 }
